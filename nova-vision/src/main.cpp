@@ -82,7 +82,7 @@ class $modify(VisionPlayLayer, PlayLayer) {
 
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
-        auto& f = *m_fields;
+        auto& f = m_fields;
         auto* mod = Mod::get();
         bool enabled = mod->getSettingValue<bool>("bot-enabled");
         if (!enabled || !m_player1 || dt <= 0.f || dt > .1f) {
