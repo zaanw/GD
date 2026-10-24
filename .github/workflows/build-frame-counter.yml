@@ -1,0 +1,31 @@
+name: Build Nova Frame Counter (Windows)
+
+on:
+  push:
+    paths:
+      - 'nova-frame-counter/**'
+      - '.github/workflows/build-frame-counter.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build separate frame counter mod
+        id: build
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          path: nova-frame-counter
+          target: Win64
+          sdk: latest
+          build-config: Release
+      - name: Upload Geode package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-Frame-Counter-Windows
+          path: ${{ steps.build.outputs.build-output }}
+          if-no-files-found: error
