@@ -1,0 +1,35 @@
+{
+  "geode": "5.11.2",
+  "gd": {
+    "win": "2.281"
+  },
+  "id": "zaan.gd-nova",
+  "name": "GD Nova",
+  "version": "v0.1.0",
+  "developer": "zaan",
+  "description": "In-game utilities and HUD for Geometry Dash.",
+  "settings": {
+    "show-hud": {
+      "type": "bool",
+      "name": "Show HUD",
+      "default": true
+    },
+    "show-attempts": {
+      "type": "bool",
+      "name": "Show attempts",
+      "default": true
+    },
+    "show-progress": {
+      "type": "bool",
+      "name": "Show progress",
+      "default": true
+    },
+    "hud-scale": {
+      "type": "float",
+      "name": "HUD scale",
+      "default": 0.45,
+      "min": 0.25,
+      "max": 0.9
+    }
+  }
+}
