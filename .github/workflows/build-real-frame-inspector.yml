@@ -27,7 +27,7 @@ jobs:
         with:
           path: frame-inspector-upstream
           target: Win64
-          sdk: latest
+          sdk: '5.10.1'
           build-config: Release
 
       - name: Confirm packaged mod exists
