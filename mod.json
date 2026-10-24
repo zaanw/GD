@@ -5,9 +5,9 @@
   },
   "id": "zaan.gd-nova",
   "name": "GD Nova",
-  "version": "v0.1.0",
+  "version": "v0.3.0",
   "developer": "zaan",
-  "description": "In-game utilities and HUD for Geometry Dash.",
+  "description": "Midnight menu with in-game HUD controls for Geometry Dash.",
   "settings": {
     "show-hud": {
       "type": "bool",
