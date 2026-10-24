@@ -1,0 +1,30 @@
+{
+  "geode": "5.11.2",
+  "gd": {
+    "win": "2.2081"
+  },
+  "id": "zaan.nova-frame-counter",
+  "name": "Nova Frame Counter",
+  "version": "v0.1.0",
+  "developer": "zaan",
+  "description": "Minimal frame/tick and FPS overlay for Geometry Dash.",
+  "settings": {
+    "show-counter": {
+      "type": "bool",
+      "name": "Show frame counter",
+      "default": true
+    },
+    "show-fps": {
+      "type": "bool",
+      "name": "Show estimated FPS",
+      "default": true
+    },
+    "counter-scale": {
+      "type": "float",
+      "name": "Text scale",
+      "default": 0.42,
+      "min": 0.25,
+      "max": 0.9
+    }
+  }
+}
