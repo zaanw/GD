@@ -36,10 +36,6 @@ bool isBlock(int id) {
 bool isKnownObstacle(int id) { return isSpike(id) || isBlock(id); }
 }
 
-class $modify(VisionObject, GameObject) {
-    // No hook: object discovery is done at PlayLayer::addObject
-};
-
 class $modify(VisionPlayLayer, PlayLayer) {
     struct Fields {
         bool pressed = false;
@@ -80,6 +76,7 @@ class $modify(VisionPlayLayer, PlayLayer) {
         m_fields->cooldown = 0.f;
         m_fields->velocityX = 0.f;
         PlayLayer::resetLevel();
+        if (m_player1) m_fields->lastX = m_player1->getPositionX();
     }
 
     void postUpdate(float dt) {
