@@ -1,6 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
-#include <Geode/modify/GameObject.hpp>
+#include <Geode/binding/GameObject.hpp>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -48,6 +48,7 @@ class $modify(VisionPlayLayer, PlayLayer) {
     bool init(GJGameLevel* level, bool replay, bool dontCreateObjects) {
         seenObjects.clear();
         if (!PlayLayer::init(level, replay, dontCreateObjects)) return false;
+        if (m_player1) m_fields->lastX = m_player1->getPositionX();
         auto* hud = CCLabelBMFont::create("VISION: IDLE", "bigFont.fnt");
         hud->setScale(.34f);
         hud->setAnchorPoint({0.f, 1.f});
@@ -98,8 +99,7 @@ class $modify(VisionPlayLayer, PlayLayer) {
 
         // Prototype: only make decisions for standard cube movement.
         // Never take over controls of other modes.
-        if (!player->m_isRobot && !player->m_isShip && !player->m_isBird &&
-            !player->m_isDart && !player->m_isBall && !player->m_isSpider) {
+        if (player->isInBasicMode() && !player->m_isRobot && !player->m_isSpider) {
             auto playerBox = player->getObjectRect();
             float nearest = std::numeric_limits<float>::infinity();
             int scanned = 0;
@@ -119,7 +119,8 @@ class $modify(VisionPlayLayer, PlayLayer) {
             // Trigger earlier at higher forward speeds. Cube jump needs a
             // calibrated approach; this simple heuristic is not a path planner.
             float trigger = std::clamp(f.velocityX * .18f, 18.f, 62.f);
-            bool jumpNow = nearest < trigger && f.cooldown <= 0.f;
+            bool jumpNow = std::isfinite(nearest) && nearest < trigger &&
+                nearest > -2.f && f.cooldown <= 0.f && player->m_isOnGround;
             if (jumpNow) { setBotInput(true); f.cooldown = .32f; }
             if (f.pressed && f.cooldown < .25f) setBotInput(false);
             if (f.hud) {
