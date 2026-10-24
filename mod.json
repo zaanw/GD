@@ -5,9 +5,9 @@
   },
   "id": "zaan.gd-nova",
   "name": "GD Nova",
-  "version": "v0.3.0",
+  "version": "v0.4.0",
   "developer": "zaan",
-  "description": "Midnight menu with in-game HUD controls for Geometry Dash.",
+  "description": "Experimental evolutionary auto-play bot plus Midnight dashboard and HUD.",
   "settings": {
     "show-hud": {
       "type": "bool",
@@ -30,6 +30,12 @@
       "default": 0.45,
       "min": 0.25,
       "max": 0.9
+    },
+    "bot-enabled": {
+      "type": "bool",
+      "name": "Experimental Auto Bot",
+      "description": "Tries and mutates jump sequences during normal-mode attempts. Not a general level solver.",
+      "default": false
     }
   }
 }
