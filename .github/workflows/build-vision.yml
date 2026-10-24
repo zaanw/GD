@@ -1,0 +1,28 @@
+name: Build Nova Vision Bot (Windows)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'nova-vision/**'
+      - '.github/workflows/build-vision.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build independent vision mod
+        id: build
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          path: nova-vision
+          target: Win64
+          sdk: latest
+          build-config: Release
+      - name: Upload Nova Vision mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-Vision-Bot-Windows
+          path: ${{ steps.build.outputs.build-output }}/*.geode
+          if-no-files-found: error
