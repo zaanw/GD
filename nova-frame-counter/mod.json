@@ -5,9 +5,9 @@
   },
   "id": "zaan.nova-frame-counter",
   "name": "Nova Frame Counter",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "developer": "zaan",
-  "description": "Minimal frame/tick and FPS overlay for Geometry Dash.",
+  "description": "Input event HUD, press/release markers, simulation tick counter. Frame-window scanning not yet implemented.",
   "settings": {
     "show-counter": {
       "type": "bool",
@@ -16,7 +16,7 @@
     },
     "show-fps": {
       "type": "bool",
-      "name": "Show estimated FPS",
+      "name": "Show estimated update frequency",
       "default": true
     },
     "counter-scale": {
@@ -25,6 +25,16 @@
       "default": 0.42,
       "min": 0.25,
       "max": 0.9
+    },
+    "show-markers": {
+      "type": "bool",
+      "name": "Show input markers",
+      "default": true
+    },
+    "show-ticks": {
+      "type": "bool",
+      "name": "Show simulation ticks",
+      "default": false
     }
   }
 }
