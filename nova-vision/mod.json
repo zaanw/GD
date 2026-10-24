@@ -1,0 +1,30 @@
+{
+  "geode": "5.11.2",
+  "gd": {
+    "win": "2.2081"
+  },
+  "id": "zaan.nova-vision",
+  "name": "Nova Vision Bot",
+  "version": "v0.1.0",
+  "developer": "zaan",
+  "description": "Experimental obstacle-scanning auto-jump bot for cube mode.",
+  "settings": {
+    "bot-enabled": {
+      "type": "bool",
+      "name": "Enable vision bot",
+      "default": false
+    },
+    "scan-range": {
+      "type": "float",
+      "name": "Scan distance",
+      "default": 155,
+      "min": 75,
+      "max": 240
+    },
+    "show-debug": {
+      "type": "bool",
+      "name": "Show scanner HUD",
+      "default": true
+    }
+  }
+}
