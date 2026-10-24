@@ -1,6 +1,9 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <algorithm>
+#include <random>
+#include <vector>
 
 using namespace geode::prelude;
 
@@ -71,9 +74,10 @@ class $modify(NovaMenuLayer, MenuLayer) {
         menu->setPosition(center);
         overlay->addChild(menu);
 
-        addOption(menu, "HUD", "show-hud", 47.f, menu_selector(NovaMenuLayer::toggleHud));
-        addOption(menu, "ATTEMPTS", "show-attempts", 16.f, menu_selector(NovaMenuLayer::toggleAttempts));
-        addOption(menu, "PROGRESS", "show-progress", -15.f, menu_selector(NovaMenuLayer::toggleProgress));
+        addOption(menu, "AUTO BOT", "bot-enabled", 59.f, menu_selector(NovaMenuLayer::toggleBot));
+        addOption(menu, "HUD", "show-hud", 35.f, menu_selector(NovaMenuLayer::toggleHud));
+        addOption(menu, "ATTEMPTS", "show-attempts", 8.f, menu_selector(NovaMenuLayer::toggleAttempts));
+        addOption(menu, "PROGRESS", "show-progress", -19.f, menu_selector(NovaMenuLayer::toggleProgress));
 
         auto* scaleText = label(fmt::format("HUD SCALE: {:.2f}", Mod::get()->getSettingValue<double>("hud-scale")).c_str(), .4f, {215, 224, 248});
         scaleText->setPosition({0.f, -52.f});
@@ -100,6 +104,7 @@ class $modify(NovaMenuLayer, MenuLayer) {
         mod->setSettingValue<bool>(key, !mod->getSettingValue<bool>(key));
         redraw();
     }
+    void toggleBot(CCObject*) { flip("bot-enabled"); }
     void toggleHud(CCObject*) { flip("show-hud"); }
     void toggleAttempts(CCObject*) { flip("show-attempts"); }
     void toggleProgress(CCObject*) { flip("show-progress"); }
@@ -117,7 +122,89 @@ class $modify(NovaMenuLayer, MenuLayer) {
 };
 
 class $modify(NovaPlayLayer, PlayLayer) {
-    struct Fields { CCLabelBMFont* hud = nullptr; };
+    struct Fields {
+        CCLabelBMFont* hud = nullptr;
+        std::vector<unsigned char> bestActions;
+        std::vector<unsigned char> actions;
+        std::mt19937 rng{std::random_device{}()};
+        float bestProgress = 0.f;
+        float attemptProgress = 0.f;
+        float elapsed = 0.f;
+        int attempts = 0;
+        int lastStep = -1;
+        bool pressed = false;
+        bool initialized = false;
+    };
+
+    // Experimental black-box evolutionary learner.
+    // Each action controls whether the jump input is held during a 120 ms slot.
+    // At death, keep the best attempt and mutate the region around the failure.
+    // This is NOT a general-purpose AI solver and it is sensitive to speed/timing.
+    void makeCandidate() {
+        auto& f = *m_fields;
+        constexpr size_t maxSteps = 900;
+        if (f.bestActions.empty()) f.bestActions.assign(maxSteps, 0);
+        f.actions = f.bestActions;
+        if (f.attempts == 0) {
+            // Start with exploratory jump pulses rather than an all-idle policy.
+            for (size_t i = 5; i < maxSteps; i += 7)
+                if ((f.rng() % 3) == 0) f.actions[i] = 1;
+        } else {
+            int pivot = std::max(0, f.lastStep);
+            // Search around the last reached interval; a few randomized mutations.
+            for (int j = 0; j < 5; ++j) {
+                int delta = static_cast<int>(f.rng() % 27) - 13;
+                int index = std::clamp(pivot + delta, 0, static_cast<int>(maxSteps) - 1);
+                f.actions[index] = static_cast<unsigned char>(!f.actions[index]);
+            }
+        }
+        f.lastStep = -1;
+        f.elapsed = 0.f;
+        f.attemptProgress = 0.f;
+        f.pressed = false;
+    }
+
+    void releaseBot() {
+        if (m_fields->pressed) {
+            handleButton(false, 1, true);
+            m_fields->pressed = false;
+        }
+    }
+
+    void resetLevel() {
+        auto& f = *m_fields;
+        if (f.initialized && Mod::get()->getSettingValue<bool>("bot-enabled") && f.elapsed > .05f) {
+            ++f.attempts;
+            if (f.attemptProgress > f.bestProgress + .0001f) {
+                f.bestProgress = f.attemptProgress;
+                f.bestActions = f.actions;
+            }
+        }
+        releaseBot();
+        PlayLayer::resetLevel();
+        f.initialized = true;
+        makeCandidate();
+    }
+
+    void postUpdate(float dt) {
+        PlayLayer::postUpdate(dt);
+        auto& f = *m_fields;
+        if (!Mod::get()->getSettingValue<bool>("bot-enabled")) {
+            releaseBot();
+            return;
+        }
+        if (!f.initialized || dt <= 0.f || dt > .5f || f.actions.empty()) return;
+        f.elapsed += dt;
+        f.attemptProgress = std::max(f.attemptProgress, getCurrentPercent());
+        int step = static_cast<int>(f.elapsed / .12f);
+        if (step >= static_cast<int>(f.actions.size())) { releaseBot(); return; }
+        f.lastStep = step;
+        bool wanted = f.actions[step] != 0;
+        if (wanted != f.pressed) {
+            handleButton(wanted, 1, true);
+            f.pressed = wanted;
+        }
+    }
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
@@ -136,6 +223,8 @@ class $modify(NovaPlayLayer, PlayLayer) {
         hud->setVisible(mod->getSettingValue<bool>("show-hud"));
         if (!hud->isVisible()) return;
         auto message = std::string("GD NOVA");
+        if (mod->getSettingValue<bool>("bot-enabled"))
+            message += fmt::format(" | BOT {} tries best {:.1f}%", m_fields->attempts, m_fields->bestProgress);
         if (mod->getSettingValue<bool>("show-attempts"))
             message += fmt::format(" | Attempt {}", m_attempts);
         if (mod->getSettingValue<bool>("show-progress"))
