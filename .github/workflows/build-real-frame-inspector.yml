@@ -1,7 +1,10 @@
-name: Build Real Frame Inspector (Windows)
+name: Build Frame Window Scanner (Windows)
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-real-frame-inspector.yml'
 
 permissions:
   contents: read
@@ -10,7 +13,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Fetch upstream Frame Inspector
+      - name: Checkout upstream Frame Inspector
         uses: actions/checkout@v4
         with:
           repository: lightningstudiosx/frame_inspector
@@ -18,7 +21,7 @@ jobs:
           path: frame-inspector-upstream
           persist-credentials: false
 
-      - name: Build upstream Frame Inspector
+      - name: Build frame window scanner
         id: build
         uses: geode-sdk/build-geode-mod@main
         with:
@@ -27,9 +30,19 @@ jobs:
           sdk: latest
           build-config: Release
 
-      - name: Upload upstream Geode package
+      - name: Confirm packaged mod exists
+        shell: pwsh
+        env:
+          PACKAGE_PATH: ${{ steps.build.outputs.build-output }}
+        run: |
+          Write-Host "Build output: $env:PACKAGE_PATH"
+          $files = @(Get-ChildItem -Path "$env:PACKAGE_PATH" -Filter *.geode -Recurse -File -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) { throw "No .geode package was produced" }
+          $files | ForEach-Object { Write-Host "Package: $($_.FullName)" }
+
+      - name: Upload Windows mod
         uses: actions/upload-artifact@v4
         with:
-          name: Frame-Inspector-Windows-Upstream
+          name: Frame-Inspector-Windows
           path: ${{ steps.build.outputs.build-output }}
           if-no-files-found: error
